@@ -32,7 +32,7 @@ export const uploadTaskCSV = async (req, res, next) => {
     }
 
     // Fetch all agents from the database
-    const agents = await User.find();
+    const agents = await User.find({ isAdmin: false });
     if (agents.length === 0) {
       return res.status(400).json({ error: "No agents found in the database" });
     }

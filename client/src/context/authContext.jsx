@@ -7,7 +7,7 @@ export const useAuthContext = () => useContext(AuthContext);
 
 const AuthContextProvider = ({ children }) => {
   // this will contain the user credentials
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   // the functions let user login
   const login = async (formData) => {
@@ -41,8 +41,24 @@ const AuthContextProvider = ({ children }) => {
       console.log(error);
     }
   };
+  const logout = async () => {
+    try {
+      const { data } = await axios.get("http://localhost:8080/api/v1/logout", {
+        withCredentials: true,
+      });
+      if (data?.success) {
+        setUser(null);
+        setIsAdmin(false);
+      }
+      return data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
-    <AuthContext.Provider value={{ isAdmin, user, login, getUserProfile }}>
+    <AuthContext.Provider
+      value={{ isAdmin, user, login, getUserProfile, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

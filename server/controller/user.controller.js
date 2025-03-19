@@ -107,3 +107,80 @@ export const getMyProfile = async (req, res, next) => {
     return next(new Errorhandler("Something went wrong", 500));
   }
 };
+
+export const logout = async (req, res, next) => {
+  try {
+    // setting the token to null
+    res.cookie("token", null, {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    });
+    return res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 400));
+  }
+};
+
+// ***********************************disclaimer******************************
+// this controller is only added to let the evaluator to  test the application by making an admin account
+//*************************************************************
+
+export const makeTestAdmin = async (req, res, next) => {
+  try {
+    let { name, password, phone, email, countryCode } = req.body;
+
+    // Validate required fields
+    if (!name || !password || !phone || !email || !countryCode)
+      return next(new Errorhandler("All fields are required", 401));
+
+    phone = Number(phone);
+
+    // Validate phone number format
+    if (Number.isNaN(phone))
+      return next(new Errorhandler("Enter a valid phone number", 401));
+    if (phone.toString().length < 10)
+      return next(
+        new Errorhandler("Phone number should be 10 digits long", 401)
+      );
+
+    // Validate password length
+    if (password.length < 6)
+      return next(
+        new Errorhandler("Password should be at least 6 characters long", 401)
+      );
+
+    // Check if user already exists
+    const user = await User.findOne({ email });
+    if (user) return next(new Errorhandler("Email already exists", 401));
+
+    // Create new user
+    const newUser = await User.create({
+      name,
+      password,
+      phone,
+      email,
+      countryCode,
+      isAdmin: true,
+
+      tasks: [],
+    });
+
+    return res.status(201).json({
+      success: true,
+      user: {
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        countryCode: newUser.countryCode,
+        isAdmin: newUser.isAdmin,
+        tasks: newUser.tasks,
+      },
+    });
+  } catch (error) {
+    console.log(error.message);
+    return next(new Errorhandler("Something went wrong", 500));
+  }
+};
